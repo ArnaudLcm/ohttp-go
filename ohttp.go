@@ -418,20 +418,23 @@ func (g Gateway) Config(keyID uint8) (PublicConfig, error) {
 	return PublicConfig{}, fmt.Errorf("unknown keyID %d", keyID)
 }
 
-func (g *Gateway) DropConfig(keyID uint8) error {
-	if _, ok := g.keyMap[keyID]; ok {
-		delete(g.keyMap, keyID)
-		newKeys := make([]uint8, 0)
-		for keyId := range g.keyMap {
-			newKeys = append(newKeys, keyId)
-		}
-		g.keys = newKeys
-
+func (g *Gateway) DropKeyFromConfig(keyID uint8) error {
+	if _, ok := g.keyMap[keyID]; !ok {
+		return fmt.Errorf("unknown keyID %d", keyID)
 	}
-	return fmt.Errorf("unknown keyID %d", keyID)
+
+	delete(g.keyMap, keyID)
+
+	newKeys := make([]uint8, 0, len(g.keys)-1)
+	for key := range g.keyMap {
+		newKeys = append(newKeys, key)
+	}
+	g.keys = newKeys
+
+	return nil
 }
 
-func (g *Gateway) AddConfig(config PrivateConfig) error {
+func (g *Gateway) AddKeyToConfig(config PrivateConfig) error {
 	if _, exists := g.keyMap[config.publicConfig.ID]; exists {
 		return fmt.Errorf("duplicate config key ID")
 	}
