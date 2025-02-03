@@ -581,3 +581,15 @@ func BenchmarkRoundTrip(b *testing.B) {
 		require.Equal(b, rawResponse, receivedResp, "Response mismatch")
 	})
 }
+
+func PopAndAddConfigs(b *testing.B) {
+	privateConfig, err := NewConfig(0x00, hpke.KEM_X25519_HKDF_SHA256, hpke.KDF_HKDF_SHA256, hpke.AEAD_AES128GCM)
+	require.Nil(b, err, "CreatePrivateConfig failed")
+
+	server := NewDefaultGateway([]PrivateConfig{privateConfig})
+	err = server.DropConfig(0x00)
+	require.Nil(b, err, "DropConfig failed")
+
+	err = server.AddConfig(privateConfig)
+	require.Nil(b, err, "AddConfig failed")
+}
